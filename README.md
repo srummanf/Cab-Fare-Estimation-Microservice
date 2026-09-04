@@ -1,9 +1,13 @@
 # Cab Fare Estimation Microservice
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688)
-![Storage](https://img.shields.io/badge/storage-SQLite-003B57)
-![License](https://img.shields.io/badge/license-not%20specified-lightgrey)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white)
+![Uvicorn](https://img.shields.io/badge/server-Uvicorn-2094F3)
+![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)
+![SQLite](https://img.shields.io/badge/DB-SQLite%20stdlib-003B57?logo=sqlite&logoColor=white)
+![Geocoding](https://img.shields.io/badge/geocoding-OpenStreetMap-7EBC6F?logo=openstreetmap&logoColor=white)
+![Endpoints](https://img.shields.io/badge/endpoints-5-informational)
+![Currency](https://img.shields.io/badge/currency-INR%20%E2%82%B9-138808)
 
 A tiny FastAPI + SQLite service that models how cab / delivery apps price a ride:
 **quote → hold → book**, with **surge pricing** based on demand vs nearby drivers.
@@ -28,10 +32,19 @@ FastAPI also serves interactive docs at **`/docs`**.
 
 ## Concepts used
 
-REST API · HTTP status codes · Pydantic request/response validation · SQLite
-tables and constraints · SQL transactions · a `UNIQUE` constraint to prevent
-double-booking · idempotent retries · a quote state machine (`HELD` → `CONSUMED`)
-· lazy expiry · the haversine distance formula · surge (dynamic) pricing.
+| Concept | What it means here |
+| --- | --- |
+| REST API | Each feature is a URL you call with HTTP and get JSON back. |
+| HTTP status codes | `200`/`201` success, `404` not found, `409` conflict, `422` invalid input. |
+| Pydantic validation | `models.py` defines the exact shape of every request/response; bad input is auto-rejected with `422`. |
+| SQLite tables & constraints | Data lives in a single-file database with typed columns and rules the DB enforces. |
+| SQL transactions | The booking's read-check-insert is one `BEGIN IMMEDIATE` unit that fully succeeds or fully rolls back. |
+| `UNIQUE` constraint | `bookings.quote_id` is unique, so a quote can be booked only once — this is the real double-booking guard. |
+| Idempotent retries | Re-sending the same booking as the same rider returns the original booking instead of an error. |
+| Quote state machine | A quote is `HELD`, then becomes `CONSUMED` on booking — no other transitions. |
+| Lazy expiry | Old quotes are not cleaned up by a job; expiry is just checked when someone tries to book. |
+| Haversine formula | Real great-circle distance between two latitude/longitude points. |
+| Surge (dynamic) pricing | Price rises when recent demand outweighs nearby available drivers. |
 
 ---
 
@@ -272,9 +285,4 @@ expiry job, auth, pagination.
 
 ## Author
 
-Learning project by the repository owner (`rummanfardeen4567@gmail.com`).
-
-## License
-
-No license file is present — all rights reserved by default. Add a `LICENSE`
-(e.g. MIT) before sharing.
+Learning project by the repository owner (`@srummanf`).
