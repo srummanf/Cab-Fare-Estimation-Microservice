@@ -1,0 +1,77 @@
+================================================================================
+                               CAB FARE ESTIMATE                                
+================================================================================
+Generated : 2026-09-04 06:04:11  (local time)
+Service   : http://127.0.0.1:8000
+Currency  : INR  (all amounts rounded to whole rupees)
+Calls     : geocode  ->  POST /quotes  ->  GET /surge
+
+--------------------------------------------------------------------------------
+TRIP                                                      geopy -> OpenStreetMap
+--------------------------------------------------------------------------------
+Pickup    : Chennai Central Railway Station, Chennai, Tamil Nadu
+            lat/lng 13.082590, 80.276308   (geocoded via OpenStreetMap Nominatim)
+            surge cell 13.08,80.28  (lat/lng rounded to 2 decimals)
+Dropoff   : Kempegowda Bus Station, Bengaluru, Karnataka
+            lat/lng 12.978185, 77.572185   (geocoded via OpenStreetMap Nominatim)
+Product   : standard   (₹50 base + ₹14/km + ₹1.5/min)
+
+--------------------------------------------------------------------------------
+DISTANCE & TIME                                                     POST /quotes
+--------------------------------------------------------------------------------
+  Straight-line distance :    293.172 km
+                           great-circle (haversine) between the two points
+  Road factor            : x1.30
+                           flat allowance for road detours — this service has
+                           no maps/routing API, so it does not trace real roads
+  Road distance (billed) :    381.123 km
+  Assumed average speed  :         40 km/h  (one constant, no live traffic)
+  Estimated duration     :      571.7 min   (~9 h 32 m)
+                           = road distance / average speed
+
+--------------------------------------------------------------------------------
+FARE BREAKDOWN  (INR)                                               POST /quotes
+--------------------------------------------------------------------------------
+  Base fare           ₹       50   flat drop charge for 'standard'
+  Distance charge     ₹    5,336   ₹14/km x 381.123 km
+  Time charge         ₹      858   ₹1.5/min x 571.7 min
+                      ----------
+  Subtotal            ₹    6,244   base + distance + time
+  Surge               ₹        0   subtotal x (x1.00 - 1) — see SURGE below
+                      ----------
+  Taxable amount      ₹    6,244
+  GST @ 5%            ₹      312   government tax on the ride
+                      ==========
+  TOTAL FARE          ₹    6,555
+                      ==========
+
+--------------------------------------------------------------------------------
+SURGE PRICING                                                         GET /surge
+--------------------------------------------------------------------------------
+  Pickup cell : 13.08,80.28
+  Demand      : 1
+                quotes created in this cell in the last 10 minutes
+  Supply      : 6
+                available drivers in this cell whose last heartbeat is
+                within 180 seconds
+  Ratio       : 0.17   (demand / max(supply, 1))
+  Peak hour   : no   (peak hours: 07:00, 08:00, 09:00, 17:00, 18:00, 19:00)
+  Multiplier  : x1.00
+                ratio bucketed to one of [1.0, 1.2, 1.5, 2.0];
+                bumped one bucket during peak hours
+
+--------------------------------------------------------------------------------
+QUOTE                                                               POST /quotes
+--------------------------------------------------------------------------------
+  Quote ID    : qte-ba4e8f7ac872
+  Status      : HELD   (this price is locked until it expires or is booked)
+  Expires at  : 2026-09-04 06:06:11   (~119s left; TTL 120s)
+  Note        : after expiry you must request a fresh quote; the price
+                (especially surge) may then be different
+
+--------------------------------------------------------------------------------
+BOOKING                                                           POST /bookings
+--------------------------------------------------------------------------------
+  Not requested.  Set  BOOK = True  in input.py to book this quote
+  as rider 'Rohan Mehta' (rider-1).
+================================================================================
