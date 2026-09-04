@@ -12,7 +12,7 @@
 A tiny FastAPI + SQLite service that models how cab / delivery apps price a ride:
 **quote → hold → book**, with **surge pricing** based on demand vs nearby drivers.
 
-Built as a learning project. All money is in **INR** (whole rupees, 5% GST).
+All money is in **INR** (whole rupees, 5% GST).
 Design notes and the list of deliberate shortcuts are in [`DESIGN.md`](DESIGN.md).
 
 ---
@@ -32,19 +32,20 @@ FastAPI also serves interactive docs at **`/docs`**.
 
 ## Concepts used
 
-| Concept | What it means here |
-| --- | --- |
-| REST API | Each feature is a URL you call with HTTP and get JSON back. |
-| HTTP status codes | `200`/`201` success, `404` not found, `409` conflict, `422` invalid input. |
-| Pydantic validation | `models.py` defines the exact shape of every request/response; bad input is auto-rejected with `422`. |
-| SQLite tables & constraints | Data lives in a single-file database with typed columns and rules the DB enforces. |
-| SQL transactions | The booking's read-check-insert is one `BEGIN IMMEDIATE` unit that fully succeeds or fully rolls back. |
-| `UNIQUE` constraint | `bookings.quote_id` is unique, so a quote can be booked only once — this is the real double-booking guard. |
-| Idempotent retries | Re-sending the same booking as the same rider returns the original booking instead of an error. |
-| Quote state machine | A quote is `HELD`, then becomes `CONSUMED` on booking — no other transitions. |
-| Lazy expiry | Old quotes are not cleaned up by a job; expiry is just checked when someone tries to book. |
-| Haversine formula | Real great-circle distance between two latitude/longitude points. |
-| Surge (dynamic) pricing | Price rises when recent demand outweighs nearby available drivers. |
+
+| Concept                     | What it means here                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| REST API                    | Each feature is a URL you call with HTTP and get JSON back.                                                 |
+| HTTP status codes           | `200`/`201` success, `404` not found, `409` conflict, `422` invalid input.                                  |
+| Pydantic validation         | `models.py` defines the exact shape of every request/response; bad input is auto-rejected with `422`.       |
+| SQLite tables & constraints | Data lives in a single-file database with typed columns and rules the DB enforces.                          |
+| SQL transactions            | The booking's read-check-insert is one`BEGIN IMMEDIATE` unit that fully succeeds or fully rolls back.       |
+| `UNIQUE` constraint         | `bookings.quote_id` is unique, so a quote can be booked only once — this is the real double-booking guard. |
+| Idempotent retries          | Re-sending the same booking as the same rider returns the original booking instead of an error.             |
+| Quote state machine         | A quote is`HELD`, then becomes `CONSUMED` on booking — no other transitions.                               |
+| Lazy expiry                 | Old quotes are not cleaned up by a job; expiry is just checked when someone tries to book.                  |
+| Haversine formula           | Real great-circle distance between two latitude/longitude points.                                           |
+| Surge (dynamic) pricing     | Price rises when recent demand outweighs nearby available drivers.                                          |
 
 ---
 
@@ -262,27 +263,9 @@ bucket (capped at 2.0).
 
 ---
 
-## Troubleshooting
-
-
-| Problem                                             | Fix                                                                                         |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `ModuleNotFoundError: fastapi`                      | `pip install fastapi uvicorn`                                                               |
-| `input.py`: cannot reach `127.0.0.1:8000`           | Start`python main.py` first                                                                 |
-| `input.py`: `could not geocode` / network error     | Use a clearer address, or set`PICKUP_LATLNG` / `DROP_LATLNG`                                |
-| Port 8000 in use                                    | Change the port in`uvicorn.run(...)` in `main.py`                                           |
-| `409` when booking                                  | Quote expired (120 s) or already booked — get a new one                                    |
-| `/surge` always `1.0`                               | Seeded drivers are only in the Chennai/Bengaluru cells; send a heartbeat for your test cell |
-| `no such column: rider_name` after pulling new code | `CREATE TABLE IF NOT EXISTS` doesn't alter old tables — delete `cabfare.db` and restart    |
-
----
-
 ## Possible extensions
 
 Tests (`pytest`), `GET /quotes/{id}`, real `FOREIGN KEY`s, a routing API instead
 of the flat road factor, an H3/S2 cell grid, surge hysteresis, a background
 expiry job, auth, pagination.
 
-## Author
-
-Learning project by the repository owner (`@srummanf`).
